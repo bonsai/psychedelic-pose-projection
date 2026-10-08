@@ -7,7 +7,7 @@
 <style>
 :root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#080b12;color:#eee;font-family:system-ui,sans-serif;padding:16px}
 main{max-width:1000px;margin:auto}h1{font-size:1.4rem;margin:0 0 6px}p{color:#9ca3af;margin:0 0 14px}
-.stage{position:relative;width:100%;aspect-ratio:16/9;background:#000;border-radius:14px;overflow:hidden}
+.stage{position:relative;width:100%;aspect-ratio:16/9;background:#000;border-radius:14px;overflow:hidden;touch-action:none}
 canvas{display:block;width:100%;height:100%}
 .controls{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 button{min-height:44px;padding:8px 14px;border:1px solid #334155;border-radius:10px;background:#111827;color:#fff}
@@ -16,13 +16,14 @@ label{display:flex;align-items:center;gap:8px;color:#cbd5e1;font-size:.9rem}
 input{width:120px}
 .status{margin-top:10px;color:#94a3b8;font-size:.85rem}
 a{color:#a78bfa}
+.hint{color:#e9d5ff;margin-top:8px}
 </style>
 </head>
 <body>
 <main>
-<h1>Particle Dissolve / 写真が粒子へバラける</h1>
-<p>既存の17フレームを写真のように送りながら、古いフレームを時間とともに粒子へ分解します。</p>
-<div class="stage"><canvas id="canvas"></canvas></div>
+<h1>Particle Dissolve / タッチで弾ける</h1>
+<p>写真を送りながら、タッチした場所から衝撃が走り、古い写真が粒子へ弾け飛びます。</p>
+<div class="stage" id="stage"><canvas id="canvas"></canvas></div>
 <div class="controls">
 <button id="play" class="active">Ⅱ 再生中</button>
 <button id="prev">← 前</button><button id="next">次 →</button>
@@ -30,16 +31,18 @@ a{color:#a78bfa}
 <label>拡散 <input id="spread" type="range" min="5" max="90" value="35"><span id="spreadValue">35</span></label>
 </div>
 <div class="status" id="status">Frame 001 / 017</div>
+<p class="hint">👆 写真をタッチすると、その場所から 💥 弾けます</p>
 <p style="margin-top:14px"><a href="./">← 評価ページへ</a></p>
 <script>
 (() => {
-const canvas=document.getElementById('canvas'),ctx=canvas.getContext('2d',{alpha:false});
+const stage=document.getElementById('stage'),canvas=document.getElementById('canvas'),ctx=canvas.getContext('2d',{alpha:false});
 const play=document.getElementById('play'),prev=document.getElementById('prev'),next=document.getElementById('next');
 const life=document.getElementById('life'),spread=document.getElementById('spread');
 const lifeValue=document.getElementById('lifeValue'),spreadValue=document.getElementById('spreadValue'),status=document.getElementById('status');
 const N=17,frames=Array.from({length:N},(_,i)=>`capt_frames/frame_${String(i+1).padStart(3,'0')}.jpg`);
 const images=frames.map(src=>{const im=new Image();im.src=src;return im});
 let index=0,running=true,last=performance.now(),lastFrame=performance.now(),particles=[],duration=1800,frameInterval=850;
+let impact=null;
 const state={w:0,h:0};
 
 function resize(){
@@ -61,30 +64,60 @@ function spawn(im){
  const sx=cw/s.w,sy=ch/s.h,step=Math.max(1,Math.floor(Math.max(s.w,s.h)/130));
  particles=[];
  for(let y=0;y<s.h;y+=step)for(let x=0;x<s.w;x+=step){
-   const k=(y*s.w+x)*4,a=s.data[k+3]; if(a<30)continue;
-   const r=s.data[k],g=s.data[k+1],b=s.data[k+2];
-   if(r+g+b<24)continue;
-   const px=x*sx,py=y*sy,dx=px-cw/2,dy=py-ch/2,len=Math.hypot(dx,dy)||1;
-   const jitter=(Math.random()-.5)*.8;
+   const k=(y*s.w+x)*4,a=s.data[k+3];if(a<30)continue;
+   const r=s.data[k],g=s.data[k+1],b=s.data[k+2];if(r+g+b<24)continue;
+   const px=x*sx,py=y*sy,dx=px-cw/2,dy=py-ch/2,len=Math.hypot(dx,dy)||1,jitter=(Math.random()-.5)*.8;
    particles.push({x:px,y:py,ox:px,oy:py,vx:(dx/len)*(.25+Math.random()*1.1)+jitter,vy:(dy/len)*(.25+Math.random()*1.1)+jitter,r,g,b,size:.8+Math.random()*1.8,seed:Math.random()*6.28});
  }
 }
-function show(n){index=(n+N)%N;spawn(images[index]);status.textContent=`Frame ${String(index+1).padStart(3,'0')} / 017`;lastFrame=performance.now()}
+function show(n){index=(n+N)%N;spawn(images[index]);status.textContent=`Frame ${String(index+1).padStart(3,'0')} / 017`;lastFrame=performance.now();impact=null}
 images.forEach(im=>im.onload=()=>{if(im===images[0])show(0)});
+
+function shoot(clientX,clientY){
+ const r=stage.getBoundingClientRect();
+ impact={x:clientX-r.left,y:clientY-r.top,time:performance.now()};
+ running=false;play.textContent='▶ 再生';play.classList.remove('active');
+ lastFrame=performance.now();
+}
+stage.addEventListener('pointerdown',e=>{if(e.target.closest('button,input'))return;shoot(e.clientX,e.clientY)});
+
+function drawImpact(now){
+ if(!impact)return;
+ const age=(now-impact.time)/700;
+ if(age>=1){impact=null;return}
+ const x=impact.x,y=impact.y;
+ ctx.save();
+ ctx.globalCompositeOperation='lighter';
+ const ring=8+age*90;
+ ctx.strokeStyle=`rgba(255,220,255,${(1-age)*.8})`;ctx.lineWidth=2+6*(1-age);
+ ctx.beginPath();ctx.arc(x,y,ring,0,Math.PI*2);ctx.stroke();
+ for(let i=0;i<18;i++){
+   const a=i*Math.PI*2/18,rr=ring*(.75+Math.sin(i*3)*.18);
+   ctx.fillStyle=`rgba(255,180,255,${(1-age)*.75})`;
+   ctx.fillRect(x+Math.cos(a)*rr,y+Math.sin(a)*rr,2,2);
+ }
+ ctx.restore();
+}
+
 function draw(now){
- const dt=Math.min(40,now-last);last=now;
+ last=now;
  const cw=canvas.clientWidth,ch=canvas.clientHeight;
  ctx.fillStyle='rgba(0,0,0,.18)';ctx.fillRect(0,0,cw,ch);
  const age=Math.min(1,(now-lastFrame)/duration),s=Number(spread.value);
  for(const p of particles){
    const ease=age*age,noise=Math.sin(p.seed+now*.002)*s*.018;
-   const x=p.ox+p.vx*s*ease*2.2+noise,y=p.oy+p.vy*s*ease*2.2-noise;
+   let x=p.ox+p.vx*s*ease*2.2+noise,y=p.oy+p.vy*s*ease*2.2-noise;
+   if(impact){
+     const ix=x-impact.x,iy=y-impact.y,dist=Math.hypot(ix,iy)||1,falloff=Math.max(0,1-dist/Math.max(cw,ch));
+     const hitAge=Math.min(1,(now-impact.time)/duration),kick=falloff*(1-hitAge)*(s*4.5);
+     x+=ix/dist*kick;y+=iy/dist*kick;
+   }
    const alpha=Math.max(0,1-age);
    ctx.fillStyle=`rgba(${p.r},${p.g},${p.b},${alpha*.82})`;
-   const z=Math.max(.2,p.size*(1-age*.65));
-   ctx.fillRect(x,y,z,z);
+   const z=Math.max(.2,p.size*(1-age*.65));ctx.fillRect(x,y,z,z);
  }
- if(running&&now-lastFrame>frameInterval){show(index+1)}
+ drawImpact(now);
+ if(running&&now-lastFrame>frameInterval)show(index+1);
  requestAnimationFrame(draw);
 }
 play.onclick=()=>{running=!running;play.textContent=running?'Ⅱ 再生中':'▶ 再生';play.classList.toggle('active',running);last=performance.now()};
