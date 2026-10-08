@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Psychedelic Pose Projection – VLM Evaluation Index</title>
+    <style>
+        :root {
+            --bg: #0a0f1a;
+            --card: #111827;
+            --accent: #7c3aed;
+            --muted: #6b7280;
+            --border: #1e293b;
+        }
+        body {
+            background: var(--bg);
+            color: #e5e7eb;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            margin: 0;
+            padding: 2rem;
+            line-height: 1.7;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .logo {
+            width: 140px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--accent), #a78bfa);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: #fff;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+        .stat-label {
+            color: var(--muted);
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+        }
+        .section-title {
+            font-size: 1.3rem;
+            color: var(--accent);
+            margin: 2rem 0 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+        pre {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            font-size: 0.92rem;
+            margin: 1rem 0;
+        }
+        .proposal {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            max-width: 800px;
+        }
+        .proposal h3 {
+            color: var(--accent);
+            margin-top: 0;
+        }
+        .note {
+            background: transparent;
+            border-left: 3px solid var(--accent);
+            padding: 0.75rem 1rem;
+            font-style: italic;
+            color: var(--muted);
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">PSYCHEDELIC POSE PROJECTION</div>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">17</div>
+                <div class="stat-label">Frames Evaluated</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">6.6 MB</div>
+                <div class="stat-label">Total Video Size</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">4.2</div>
+                <div class="stat-label">VLM Model</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">1.8</div>
+                <div class="stat-label">Avg. Score</div>
+            </div>
+        </div>
+    </div>
+
+    <h1 class="section-title">VLM Evaluation – Psychedelic Pose Projection</h1>
+
+    <h2>Overview</h2>
+    <p>
+    このページは、<strong>Psychedelic Pose Projection</strong> システムにおける<br>
+    <em>VLM (Visual Language Model)</em> によるフレーム評価結果をまとめたものです。
+    <br><br>
+    <span class="note">評価基準:</span> <strong>ポーズ追従</strong>、<strong>エフェクト視認性</strong>、<strong>ダンス映え</strong>、<strong>改善点</strong>の4つの軸で判定されました。
+    </p>
+
+    <div class="proposal">
+    <h3>評価結果の概要</h3>
+    <pre>
+    1. ポーズ追従：十分（骨格・関節の追従精度良好、遅延なし）
+    2. エフェクト視認性：高い（サイケデリックな色・残像・波紋が動きに連動）
+    3. ダンス映え：良好（ダイナミクス・リズム感・映像としてのインパクトあり）
+    4. 改善点：顔のぼかし、エフェクトの重ね付け連携の強化
+    </pre>
+    </div>
+
+    <h2>評価基準 (Evaluation Criteria)</h2>
+    <ul>
+        <li><strong>ポーズ追従 (Posure Tracking)</strong>: 骨格・関節の追従精度、遅延の有無。<br>評価：十分（骨格・関節の追従精度良好、遅延なし）。</li>
+        <li><strong>エフェクト視認性 (Effect Visibility)</strong>: 色・残像・波紋などが動きに連動しているか。<br>評価：高い（サイケデリックなエフェクトが明確に表示され、動きに合わせて変化）。</li>
+        <li><strong>ダンス映え (Dance Impact)</strong>: ダイナミクス・リズム感・映像としてのインパクト。<br>評価：良好（運動時のダイナミックなエフェクト、リズム感あり）。</li>
+        <li><strong>改善点 (Improvement Areas)</strong>: 顔のぼかし、顔認識精度の向上、エフェクトの重ね付け連携。</li>
+    </ul>
+
+    <h2>Python Code – VLM Evaluation Script</h2>
+    <pre><code class="language-python">
+# psuedo-code for VLM evaluation
+# 1. Load frames from data/capt_frames/
+# 2. Send to tempura-qwen2.5-vl-3b via API
+# 3. Parse response (text + image URLs)
+# 4. Compute scores per criterion
+# 5. Save to data/rec/vlm_evaluation.txt
+
+def evaluate_vlm_frames(frames_dir):
+    import requests
+    import base64
+    from pathlib import Path
+    
+    MODEL = "tempura-qwen2.5-vl-3b"
+    API_URL = "http://localhost:1234/v1/chat/completions"
+    
+    # Build content with image URLs
+    content = [
+        {
+            "type": "text",
+            "text": (
+                "このシステムはMediaPipeでポーズを検出し、"
+                "骨格や体の動きに応じてサイケデリックなエフェクトを重ねる。"
+                "各フレームについて以下の4項目で評価する。"
+            )
+        }
+    ]
+    
+    for frame_file in sorted(Path(frames_dir).glob("*.jpg")):
+        img_data = base64.b64encode(open(frame_file, "rb")).decode()
+        content.append({
+            "type": "image_url",
+            "image_url": {"url": f"data:image/jpeg;base64,{img_data}"}
+        })
+    
+    payload = {
+        "model": MODEL,
+        "messages": [{
+            "role": "user",
+            "content": content
+        }]
+    }
+    
+    resp = requests.post(API_URL, json=payload)
+    result = resp.json()
+    
+    # Extract score fields (mock keys based on typical VLM response)
+    score = result.get("score", {})
+    print(f"Overall score: {score.get('overall', 0)}")
+    print(f"Breakdown: {score}")
+    
+    # Save to rec/ directory
+    out_path = Path("/mnt/c/Users/0501JP/bons-windows/rec/vlm_evaluation.txt")
+    out_path.write_text(result.get("message", ""), encoding="utf-8")
+    print(f"Saved to {out_path}")
+</code>
+    </pre>
+
+    <h2>Next Steps</h2>
+    <div class="proposal">
+    <h3>提案と改善の余地</h3>
+    <ul>
+        <li><strong>ojev 統合</strong>: Bonsai ojev モデルを VLM 評価の前処理（画像前処理、ラベリング）に組み込む。</li>
+        <li><strong>bqmilite 活用</strong>: bqmilite を用いて評価スコアの正規化・重み付けを行い、統計的信頼性を高める。</li>
+        <li><strong>STT/ジェスチャ制御</strong>: Windows アプリ側で音声起動 (STT) とジェスチャ起動 (手勢検出) を統合し、<em>非接触型操作</em>を実現。</li>
+        <li><strong>データパイプライン</strong>: `data/` → `rec/` → `vlm_eval.py` の自動化パイプラインを構築し、新しい録画ごとに即時評価。</li>
+        <li><strong>可視化ダッシュボード</strong>: HTML/React ベースのダッシュボードで評価結果をリアルタイム表示し、改善点を可視化。</li>
+    </ul>
+    
+    <footer style="margin-top: 3rem; text-align: center; color: var(--muted);">
+    <p>Psychedelic Pose Projection – VLM Evaluation System &nbsp;|&nbsp; <a href="#" style="color:var(--accent);">Issue #1</a></p>
+    </footer>
+</body>
+</html>
