@@ -32,10 +32,16 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
+      - name: Assemble captf site
+        run: |
+          mkdir -p _site/capt_frames
+          cp -R data/captf/. _site/
+          cp data/capt_frames/*.jpg _site/capt_frames/
+
       - name: Upload captf site
         uses: actions/upload-pages-artifact@v4
         with:
-          path: data/captf
+          path: _site
 
       - name: Deploy to GitHub Pages
         id: deployment
