@@ -7,6 +7,7 @@ Psychedelic Pose Projection — MediaPipe Tasks API 版
 import math
 import os
 import random
+import sys
 import time
 import urllib.request
 from collections import deque
@@ -16,6 +17,13 @@ from typing import Optional, Tuple
 # MediaPipe / TensorFlow の不要なログを抑制
 os.environ.setdefault("GLOG_minloglevel", "2")
 os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "2")
+
+
+def app_dir() -> str:
+    """EXE 実行時は EXE があるフォルダ、スクリプト実行時はスクリプトがあるフォルダを返す"""
+    if getattr(sys, "frozen", False):
+        return os.path.dirname(sys.executable)
+    return os.path.dirname(__file__)
 
 import cv2
 import mediapipe as mp
@@ -299,7 +307,7 @@ def draw_water(frame, mask, contour, frame_count):
 
 # ---------- メイン ----------
 def create_video_writer(w, h, fps):
-    recordings_dir = os.path.join(os.path.dirname(__file__), "recordings")
+    recordings_dir = os.path.join(app_dir(), "recordings")
     os.makedirs(recordings_dir, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     path = os.path.join(recordings_dir, f"psychedelic_pose_{timestamp}.mp4")
