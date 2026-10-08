@@ -1,0 +1,53 @@
+name: Release Windows EXE
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Download model
+        shell: pwsh
+        run: |
+          $url = "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task"
+          Invoke-WebRequest -Uri $url -OutFile "windows/pose_landmarker_lite.task"
+
+      - name: Install dependencies and PyInstaller
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r windows/requirements.txt pyinstaller
+
+      - name: Build EXE
+        shell: pwsh
+        run: |
+          pyinstaller `
+            --onefile `
+            --name PsychedelicPoseProjection `
+            --add-data "pose_landmarker_lite.task;." `
+            --collect-data mediapipe `
+            --collect-binaries mediapipe `
+            --noconfirm `
+            --workpath windows/build `
+            --specpath windows `
+            --distpath windows/dist `
+            windows/main_tasks.py
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: windows/dist/PsychedelicPoseProjection.exe
+          generate_release_notes: true
