@@ -1,2 +1,45 @@
-# psychedelic-pose-projection
-Mediapipe Pose tracking + OpenCV psychedelic effects projected onto the body for enhanced dance visualization. Wrist trails, speed-based HSV colors, body waves, and more.
+# Psychedelic Pose Projection
+
+Mediapipe Pose で骨格を追尾し、OpenCV でサイケデリックな残像・軌跡を描画してプロジェクタ投影するダンス強調システム。
+
+## コンセプト
+
+自画像（体）にプロジェクタでサイケな線を重ねることで、踊りが視覚的に強調される。
+
+- **骨格トラッキング**: Mediapipe Pose (33ランドマーク)
+- **サイケ描写**: 手の軌跡の虹色残像、速度連動HSV色相、体幹の波紋、顔の万華鏡など
+- **投影**: 等身大サイズにキャリブレーションして投影
+
+一番効くポイント: **手の速度 × 色相**。速く振ると赤→青→緑と色が回る。踊りがそのまま光の筆になる。
+
+## セットアップ
+
+```bash
+pip install -r requirements.txt
+```
+
+## 実行
+
+```bash
+python main.py
+```
+
+カメラが起動し、手首の虹色残像が表示されます。`q` キーで終了。
+
+## 今後の拡張
+
+- [x] 手首追尾 + 虹色残像（速度連動HSV）
+- [ ] 全身骨格ライン + 残像エフェクト
+- [ ] 体幹揺れによる背景波紋
+- [ ] 顔位置の万華鏡パターン
+- [ ] プロジェクタキャリブレーション（床の十字マーク + OpenCV歪み補正）
+- [ ] Pygame フルスクリーン投影モード
+
+## 技術スタック
+
+- Python 3.9+
+- Mediapipe
+- OpenCV
+- NumPy
+
+ノートPC + カメラ + プロジェクタだけで動作可能。
