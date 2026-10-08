@@ -90,6 +90,29 @@
             color: var(--accent);
             margin-top: 0;
         }
+        .frame-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0 2rem;
+        }
+        .frame-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .frame-card img {
+            display: block;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            object-fit: cover;
+        }
+        .frame-card figcaption {
+            padding: 0.6rem 0.75rem;
+            color: var(--muted);
+            font-size: 0.8rem;
+        }
         .note {
             background: transparent;
             border-left: 3px solid var(--accent);
@@ -124,6 +147,79 @@
     </div>
 
     <h1 class="section-title">VLM Evaluation – Psychedelic Pose Projection</h1>
+
+    <h2>Captured Frames</h2>
+    <p>実際に取得した17フレームを、評価結果と一緒に確認できます。</p>
+    <div class="frame-grid">
+        <figure class="frame-card">
+            <img src="../capt_frames/frame_001.jpg" alt="Captured frame 001" loading="lazy">
+            <figcaption>Frame 001</figcaption>
+        </figure>
+        <figure class="frame-card">
+            <img src="../capt_frames/frame_002.jpg" alt="Captured frame 002" loading="lazy">
+            <figcaption>Frame 002</figcaption>
+        </figure>
+        <figure class="frame-card">
+            <img src="../capt_frames/frame_003.jpg" alt="Captured frame 003" loading="lazy">
+            <figcaption>Frame 003</figcaption>
+        </figure>
+        <figure class="frame-card">
+            <img src="../capt_frames/frame_004.jpg" alt="Captured frame 004" loading="lazy">
+            <figcaption>Frame 004</figcaption>
+        </figure>
+        <figure class="frame-card">
+            <img src="../capt_frames/frame_005.jpg" alt="Captured frame 005" loading="lazy">
+            <figcaption>Frame 005</figcaption>
+        </figure>
+        <figure class="frame-card">
+            <img src="../capt_frames/frame_006.jpg" alt="Captured frame 006" loading="lazy">
+            <figcaption>Frame 006</figcaption>
+        </figure>
+        <figure class="frame-card">
+            <img src="../capt_frames/frame_007.jpg" alt="Captured frame 007" loading="lazy">
+            <figcaption>Frame 007</figcaption>
+        </figure>
+        <figure class="frame-card">
+            <img src="../capt_frames/frame_008.jpg" alt="Captured frame 008" loading="lazy">
+            <figcaption>Frame 008</figcaption>
+        </figure>
+        <figure class="frame-card">
+            <img src="../capt_frames/frame_009.jpg" alt="Captured frame 009" loading="lazy">
+            <figcaption>Frame 009</figcaption>
+        </figure>
+        <figure class="frame-card">
+            <img src="../capt_frames/frame_010.jpg" alt="Captured frame 010" loading="lazy">
+            <figcaption>Frame 010</figcaption>
+        </figure>
+        <figure class="frame-card">
+            <img src="../capt_frames/frame_011.jpg" alt="Captured frame 011" loading="lazy">
+            <figcaption>Frame 011</figcaption>
+        </figure>
+        <figure class="frame-card">
+            <img src="../capt_frames/frame_012.jpg" alt="Captured frame 012" loading="lazy">
+            <figcaption>Frame 012</figcaption>
+        </figure>
+        <figure class="frame-card">
+            <img src="../capt_frames/frame_013.jpg" alt="Captured frame 013" loading="lazy">
+            <figcaption>Frame 013</figcaption>
+        </figure>
+        <figure class="frame-card">
+            <img src="../capt_frames/frame_014.jpg" alt="Captured frame 014" loading="lazy">
+            <figcaption>Frame 014</figcaption>
+        </figure>
+        <figure class="frame-card">
+            <img src="../capt_frames/frame_015.jpg" alt="Captured frame 015" loading="lazy">
+            <figcaption>Frame 015</figcaption>
+        </figure>
+        <figure class="frame-card">
+            <img src="../capt_frames/frame_016.jpg" alt="Captured frame 016" loading="lazy">
+            <figcaption>Frame 016</figcaption>
+        </figure>
+        <figure class="frame-card">
+            <img src="../capt_frames/frame_017.jpg" alt="Captured frame 017" loading="lazy">
+            <figcaption>Frame 017</figcaption>
+        </figure>
+    </div>
 
     <h2>Overview</h2>
     <p>
