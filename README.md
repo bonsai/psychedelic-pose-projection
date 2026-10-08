@@ -1,87 +1,64 @@
 # Psychedelic Pose Projection
 
-Mediapipe Pose で骨格を追尾し、OpenCV でサイケデリックな残像・軌跡を描画してプロジェクタ投影するダンス強調システム。
+MediaPipe Pose を使ったダンス強調システム。骨格追跡、虹色残像、体幹波紋、体の輪郭を使った炎・水・ダンサー残像エフェクトを含みます。
 
-## コンセプト
+## 構成
 
-自画像（体）にプロジェクタでサイケな線を重ねることで、踊りが視覚的に強調される。
-
-- **骨格トラッキング**: Mediapipe Pose (33ランドマーク)
-- **サイケ描写**: 手の軌跡の虹色残像、速度連動HSV色相、体幹の波紋
-- **投影**: カメラ↔プロジェクタのホモグラフィキャリブレーションで位置合わせ
-
-一番効くポイント: **手の速度 × 色相**。速く振ると赤→青→緑と色が回る。踊りがそのまま光の筆になる。
-
-## セットアップ
-
-```bash
-pip install -r requirements.txt
+```text
+.
+├── .github/workflows/         # GitHub Actions（Windows EXE 自動ビルド）
+├── linux/                     # 元の Linux 版（OpenCV + MediaPipe Solutions）
+│   ├── main.py
+│   ├── calibration.py
+│   └── requirements.txt
+├── windows/                   # Windows 版（MediaPipe Tasks API + モード切替）
+│   ├── main_tasks.py
+│   ├── build-exe.ps1
+│   └── requirements.txt
+├── processing/                # Processing + OSC 連携版
+│   ├── sender.py
+│   └── psychedelic_pose_projection.pde
+└── tools/
+    ├── attach-camera.ps1      # WSL2 用カメラアタッチスクリプト
+    └── mcp-server/            # MCP サーバー
 ```
 
-## 実行
+## クイックスタート
 
-### 通常起動
+### Windows ネイティブ
+
+```powershell
+cd windows
+pip install -r requirements.txt
+python main_tasks.py
+```
+
+キー：`1` 通常 / `2` 炎 / `3` 水 / `4` ダンサー残像 / `q` 終了
+
+### Windows EXE ビルド
+
+```powershell
+cd windows
+.\build-exe.ps1
+```
+
+出力：`windows/dist/PsychedelicPoseProjection.exe`
+
+### Linux / WSL
 
 ```bash
+cd linux
+pip install -r requirements.txt
 python main.py
 ```
 
-- **Camera Preview** … カメラ映像 + エフェクト（確認用）
-- **Projector Output** … 黒背景 + エフェクトのみ（これをプロジェクタに出す）
+WSL2 でカメラが認識しない場合は `tools/attach-camera.ps1` を Windows PowerShell（管理者）で実行してください。
 
-### キャリブレーション付き起動
+### Processing 連携
 
-```bash
-python main.py --calibrate
-```
+1. `processing/sender.py` を Python で起動
+2. Processing IDE で `processing/psychedelic_pose_projection.pde` を開き、`oscP5` ライブラリをインストールして実行
 
-または実行中に `c` キー。
+## 自動ビルド
 
-#### キャリブ手順（4点クリック・おすすめ）
-
-1. プロジェクタを体が立つ位置（床 or 壁）に向けておく
-2. `python main.py --calibrate` → `1` を選択
-3. プロジェクタに緑の十字 + 四隅マーカーが出る
-4. 床に貼った十字と緑十字を大まかに合わせる
-5. カメラ映像上で、**投影された四隅**を 左上→右上→右下→左下 の順にクリック
-6. Enter で確定 → `calibration.npz` に保存
-
-以降は起動時に自動で読み込まれ、エフェクトがプロジェクタ座標にワープされます。
-
-#### チェスボード自動検出
-
-`--calibrate` で `2` を選ぶとチェスボードを投影し、カメラで検出してホモグラフィを計算します。
-
-### オプション
-
-```bash
-python main.py --projector-width 1280 --projector-height 720   # 解像度指定
-python main.py --no-projector                                 # カメラのみ
-```
-
-### キー操作
-
-| キー | 動作 |
-|------|------|
-| `q`  | 終了 |
-| `c`  | 再キャリブレーション |
-| `f`  | プロジェクタウィンドウのフルスクリーン切替 |
-
-## 実装済み / 今後の拡張
-
-- [x] 手首追尾 + 虹色残像（速度連動HSV）
-- [x] 全身骨格ライン + 残像エフェクト
-- [x] 体幹揺れによる背景波紋（腰の水平揺れ幅に比例）
-- [x] プロジェクタキャリブレーション（4点 / チェスボード + ホモグラフィワープ）
-- [ ] 顔位置の万華鏡パターン
-- [ ] Pygame フルスクリーン投影モード
-- [ ] カメラ歪み補正（intrinsics）の統合
-
-## 技術スタック
-
-- Python 3.9+
-- Mediapipe
-- OpenCV
-- NumPy
-
-ノートPC + カメラ + プロジェクタだけで動作可能。
+`main` ブランチに push するたび、GitHub Actions で Windows EXE がビルドされます。リポジトリ設定で Workflow の実行許可を有効にしてください。

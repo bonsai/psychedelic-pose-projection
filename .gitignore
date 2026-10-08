@@ -8,6 +8,25 @@ __pycache__/
 *.egg-info/
 .venv/
 venv/
+.venv-*/
+*.egg
+.Python
+
+# PyInstaller
+*.spec
+
+# Build / dist
+build/
+dist/
+
+# MediaPipe model (downloaded on demand)
+*.task
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
 
 # OS
 .DS_Store
