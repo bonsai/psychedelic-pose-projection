@@ -12,11 +12,7 @@ video,img{position:absolute;width:100%;height:100%;object-fit:contain}.hidden{di
 <h1>📷 Camera Flipbook</h1>
 <p class="help">カメラを1秒に1枚撮影して、あとでパラパラ漫画として再生します。</p>
 <div class="stage"><video id="video" autoplay playsinline muted></video><img id="player" class="hidden"></div>
-<div class="controls">
-<button id="start">📷 撮影開始</button><button id="stop" disabled>⏹ 撮影停止</button>
-<button id="play" disabled>▶ パラパラ</button><button id="pause" disabled>⏸ 停止</button>
-<button id="prev" disabled>◀</button><button id="next" disabled>▶</button><button id="reset" disabled>🔄 最初</button><button id="save" disabled>💾 保存</button>
-</div>
+<div class="controls"><button id="start">● REC</button><button id="stop" disabled>■ STOP</button><button id="play" disabled>▶ PLAY</button><button id="pause" disabled>■ STOP</button><button id="save" disabled>💾 SAVE</button></div>
 <div class="status" id="status">0コマ</div><div class="film" id="film"></div>
 <canvas id="canvas" class="hidden"></canvas>
 <script>
