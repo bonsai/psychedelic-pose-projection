@@ -7,8 +7,10 @@ Psychedelic Pose Projection — MediaPipe Tasks API 版
 import math
 import os
 import random
+import time
 import urllib.request
 from collections import deque
+from datetime import datetime
 from typing import Optional, Tuple
 
 # MediaPipe / TensorFlow の不要なログを抑制
@@ -296,6 +298,22 @@ def draw_water(frame, mask, contour, frame_count):
 
 
 # ---------- メイン ----------
+def create_video_writer(w, h, fps):
+    recordings_dir = os.path.join(os.path.dirname(__file__), "recordings")
+    os.makedirs(recordings_dir, exist_ok=True)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    path = os.path.join(recordings_dir, f"psychedelic_pose_{timestamp}.mp4")
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    writer = cv2.VideoWriter(path, fourcc, fps, (w, h))
+    if not writer.isOpened():
+        # mp4v が使えない環境では XVID/avi に fallback
+        path = os.path.join(recordings_dir, f"psychedelic_pose_{timestamp}.avi")
+        fourcc = cv2.VideoWriter_fourcc(*"XVID")
+        writer = cv2.VideoWriter(path, fourcc, fps, (w, h))
+    print(f"録画開始: {path}")
+    return writer, path
+
+
 def main():
     global mode_index
 
@@ -327,8 +345,12 @@ def main():
     prev_right = None
     frame_count = 0
 
+    is_recording = False
+    writer = None
+    writer_path = None
+
     print("カメラ起動中...")
-    print("q: 終了 / 1: 通常 / 2: 炎 / 3: 水 / 4: ダンサー残像")
+    print("q: 終了 / 1: 通常 / 2: 炎 / 3: 水 / 4: ダンサー残像 / r: 録画")
 
     while True:
         ret, frame = cap.read()
@@ -391,12 +413,21 @@ def main():
         result = cv2.addWeighted(frame, 0.25, overlay, 0.75, 0)
 
         # UI
+        # 録画中インジケーター
+        if is_recording:
+            cv2.circle(result, (w - 35, 35), 10, (0, 0, 255), -1, cv2.LINE_AA)
+            cv2.putText(result, "REC", (w - 110, 42),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2, cv2.LINE_AA)
+
         cv2.putText(result, f"Mode: {mode.upper()}", (10, 30),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2, cv2.LINE_AA)
-        cv2.putText(result, "1:normal 2:fire 3:water 4:dancer  q:quit", (10, 60),
+        cv2.putText(result, "1:normal 2:fire 3:water 4:dancer  r:rec  q:quit", (10, 60),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (200, 200, 200), 1, cv2.LINE_AA)
 
         cv2.imshow("Psychedelic Pose Projection", result)
+
+        if is_recording and writer is not None:
+            writer.write(result)
 
         key = cv2.waitKey(1) & 0xFF
         if key == ord("q"):
@@ -417,9 +448,23 @@ def main():
             mode_index = 3
             particles.clear()
             body_history.clear()
+        elif key == ord("r"):
+            if is_recording:
+                is_recording = False
+                if writer is not None:
+                    writer.release()
+                    print(f"録画終了: {writer_path}")
+                    writer = None
+                    writer_path = None
+            else:
+                fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
+                writer, writer_path = create_video_writer(w, h, fps)
+                is_recording = True
 
         frame_count += 1
 
+    if writer is not None:
+        writer.release()
     cap.release()
     cv2.destroyAllWindows()
 
