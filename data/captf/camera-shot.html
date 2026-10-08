@@ -1,23 +1,31 @@
 <!DOCTYPE html>
 <html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Camera Shot — 1FPS Image Shooter</title>
+<title>Camera Flipbook — 1FPS</title>
 <style>
 body{margin:0;background:#070b12;color:#fff;font-family:system-ui,sans-serif;padding:16px}main{max-width:900px;margin:auto}
-h1{font-size:1.5rem}.game{position:relative;aspect-ratio:16/9;background:#000;border-radius:14px;overflow:hidden;touch-action:none}
-video,canvas{position:absolute;width:100%;height:100%;object-fit:cover}.shot{position:absolute;width:90px;height:60px;object-fit:cover;border:2px solid #fff;border-radius:8px;pointer-events:none;transform:translate(-50%,-50%)}
-.ui{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}button{min-height:44px;padding:8px 16px;border-radius:10px;border:1px solid #475569;background:#111827;color:white;font-weight:700}
-.status{color:#a5b4fc;margin-top:10px}.help{color:#94a3b8}
+h1{font-size:1.5rem}.stage{position:relative;aspect-ratio:16/9;background:#000;border-radius:14px;overflow:hidden}
+video,img{position:absolute;width:100%;height:100%;object-fit:contain}.hidden{display:none}
+.controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}button{min-height:44px;padding:8px 14px;border-radius:10px;border:1px solid #475569;background:#111827;color:#fff;font-weight:700}
+.status{color:#a5b4fc;margin-top:10px}.film{display:flex;gap:5px;overflow-x:auto;margin-top:12px}.film img{position:static;width:110px;height:70px;flex:none;border-radius:6px}
+.help{color:#94a3b8}
 </style></head><body><main>
-<h1>📷 Camera Shot</h1><p class="help">カメラを1秒に1枚捕捉。その写真を弾にして、タップした方向へ撃つ。</p>
-<div class="game" id="game"><video id="video" autoplay playsinline muted></video><canvas id="capture"></canvas></div>
-<div class="ui"><button id="start">📷 カメラ開始</button><button id="shoot" disabled>🎯 シュート</button></div>
-<div class="status" id="status">カメラ待機中</div>
+<h1>📷 Camera Flipbook</h1>
+<p class="help">カメラを1秒に1枚撮影して、あとでパラパラ漫画として再生します。</p>
+<div class="stage"><video id="video" autoplay playsinline muted></video><img id="player" class="hidden"></div>
+<div class="controls">
+<button id="start">📷 撮影開始</button><button id="stop" disabled>⏹ 撮影停止</button>
+<button id="play" disabled>▶ パラパラ</button><button id="pause" disabled>⏸ 停止</button>
+<button id="prev" disabled>◀</button><button id="next" disabled>▶</button><button id="reset" disabled>🔄 最初</button>
+</div>
+<div class="status" id="status">0コマ</div><div class="film" id="film"></div>
+<canvas id="canvas" class="hidden"></canvas>
 <script>
-(()=>{const game=document.getElementById('game'),video=document.getElementById('video'),canvas=document.getElementById('capture'),start=document.getElementById('start'),shoot=document.getElementById('shoot'),status=document.getElementById('status');let stream=null,latest=null,shots=[],lastCapture=0,target=null;
-async function startCamera(){try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});video.srcObject=stream;await video.play();shoot.disabled=false;status.textContent='📷 1 FPS 捕捉中';}catch(e){status.textContent='カメラを開始できませんでした。HTTPSとカメラ権限を確認してください。'}}
-function capture(now){if(video.readyState>=2&&now-lastCapture>=1000){canvas.width=video.videoWidth;canvas.height=video.videoHeight;canvas.getContext('2d').drawImage(video,0,0);latest=canvas.toDataURL('image/jpeg',.72);lastCapture=now;status.textContent='📷 最新弾を更新 '+new Date().toLocaleTimeString();}}
-function fire(x,y){if(!latest)return;const r=game.getBoundingClientRect(),sx=r.width/2,sy=r.height/2,tx=x-r.left,ty=y-r.top,dx=tx-sx,dy=ty-sy,len=Math.hypot(dx,dy)||1;shots.push({src:latest,x:sx,y:sy,vx:dx/len*8,vy:dy/len*8,life:0});}
-game.addEventListener('pointerdown',e=>{if(!latest)return;fire(e.clientX,e.clientY);});
-shoot.addEventListener('click',()=>{if(!latest){status.textContent='まだ写真を捕捉していません';return}fire(game.clientWidth*.75,game.clientHeight/2)});
-function loop(now){capture(now);for(let i=shots.length-1;i>=0;i--){const s=shots[i];s.x+=s.vx;s.y+=s.vy;s.life++;let el=s.el;if(!el){el=document.createElement('img');el.className='shot';el.src=s.src;game.appendChild(el);s.el=el}el.style.left=s.x+'px';el.style.top=s.y+'px';el.style.opacity=Math.max(0,1-s.life/100);if(s.life>100||s.x<-100||s.x>game.clientWidth+100||s.y<-100||s.y>game.clientHeight+100){el.remove();shots.splice(i,1)}}requestAnimationFrame(loop)}requestAnimationFrame(loop);start.addEventListener('click',startCamera);})();
+(()=>{const video=document.getElementById('video'),player=document.getElementById('player'),canvas=document.getElementById('canvas'),film=document.getElementById('film'),status=document.getElementById('status');const start=document.getElementById('start'),stop=document.getElementById('stop'),play=document.getElementById('play'),pause=document.getElementById('pause'),prev=document.getElementById('prev'),next=document.getElementById('next'),reset=document.getElementById('reset');let stream=null,frames=[],timer=null,playTimer=null,index=0;
+function ui(){const has=frames.length>0;play.disabled=!has;pause.disabled=!has;prev.disabled=!has;next.disabled=!has;reset.disabled=!has;status.textContent=frames.length+'コマ'+(has?' / '+(index+1)+'コマ目':'');}
+async function camera(){try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});video.srcObject=stream;await video.play();capture();timer=setInterval(capture,1000);start.disabled=true;stop.disabled=false;status.textContent='📷 1 FPS 撮影中 — 1コマ目';}catch(e){status.textContent='カメラを開始できませんでした。HTTPSと権限を確認してください。'}}
+function capture(){if(video.videoWidth<1)return;canvas.width=video.videoWidth;canvas.height=video.videoHeight;canvas.getContext('2d').drawImage(video,0,0);const src=canvas.toDataURL('image/jpeg',.82);frames.push(src);index=frames.length-1;const thumb=document.createElement('img');thumb.src=src;film.appendChild(thumb);ui();}
+function show(){if(!frames.length)return;player.src=frames[index];player.classList.remove('hidden');video.classList.add('hidden');ui();}
+function stopCapture(){clearInterval(timer);timer=null;if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}stop.disabled=true;start.disabled=false;status.textContent=frames.length+'コマ撮影しました';}
+function playFlip(){if(!frames.length)return;video.classList.add('hidden');player.classList.remove('hidden');clearInterval(playTimer);playTimer=setInterval(()=>{index=(index+1)%frames.length;show()},120);}
+start.onclick=camera;stop.onclick=stopCapture;play.onclick=playFlip;pause.onclick=()=>{clearInterval(playTimer);playTimer=null};prev.onclick=()=>{index=(index-1+frames.length)%frames.length;show()};next.onclick=()=>{index=(index+1)%frames.length;show()};reset.onclick=()=>{index=0;show()};ui();})();
 </script></main></body></html>
