@@ -11,10 +11,10 @@ PVector[] points = new PVector[14];
 ArrayList<PVector> leftTrail = new ArrayList<PVector>();
 ArrayList<PVector> rightTrail = new ArrayList<PVector>();
 ArrayList<PVector[]> skeletonHistory = new ArrayList<PVector[]>();
-ArrayList<PVector> hipHistory = new ArrayList<PVector>();
 
 float leftSpeed = 0;
 float rightSpeed = 0;
+float hipSway = 0;
 
 int[][] CONNECTIONS = {
   {0, 1}, {0, 2},
@@ -77,35 +77,20 @@ void draw() {
     }
   }
 
+  // Rendering only: Python computes hip_sway intensity and sends /hip_sway.
   PVector hip = points[13];
-  if (onScreen(hip)) {
-    hipHistory.add(hip.copy());
-    if (hipHistory.size() > 40) hipHistory.remove(0);
-  }
-
-  if (hipHistory.size() >= 5) {
-    float meanX = 0;
-    for (PVector p : hipHistory) meanX += p.x;
-    meanX /= hipHistory.size();
-
-    float std = 0;
-    for (PVector p : hipHistory) std += sq(p.x - meanX);
-    std = sqrt(std / hipHistory.size());
-
-    if (std > 3.0) {
-      float intensity = min(std / 25.0, 1.5);
-      int numRings = int(2 + intensity * 3);
-
-      noFill();
-      for (int i = 0; i < numRings; i++) {
-        float phase = (frameCount * 0.15 + i * 1.2) % TWO_PI;
-        float radius = 30 + i * 28 + sin(phase) * 12 * intensity;
-        float alpha = max(0.15, 0.7 - i * 0.12) * min(intensity, 1.0) * 255;
-        float hue = (frameCount * 3 + std * 4 + i * 25) % 360;
-        stroke(hue, 200, 255, alpha);
-        strokeWeight(max(1, 2.5 * intensity + 1));
-        ellipse(hip.x, hip.y, radius * 2, radius * 2);
-      }
+  if (onScreen(hip) && hipSway > 0.03) {
+    float intensity = min(hipSway, 1.5);
+    int numRings = int(2 + intensity * 3);
+    noFill();
+    for (int i = 0; i < numRings; i++) {
+      float phase = (frameCount * 0.15 + i * 1.2) % TWO_PI;
+      float radius = 30 + i * 28 + sin(phase) * 12 * intensity;
+      float alpha = max(0.15, 0.7 - i * 0.12) * min(intensity, 1.0) * 255;
+      float hue = (frameCount * 3 + intensity * 40 + i * 25) % 360;
+      stroke(hue, 200, 255, alpha);
+      strokeWeight(max(1, 2.5 * intensity + 1));
+      ellipse(hip.x, hip.y, radius * 2, radius * 2);
     }
   }
 
@@ -140,6 +125,8 @@ void oscEvent(OscMessage msg) {
     leftSpeed = msg.get(0).floatValue();
   } else if (msg.checkAddrPattern("/right_speed")) {
     rightSpeed = msg.get(0).floatValue();
+  } else if (msg.checkAddrPattern("/hip_sway")) {
+    hipSway = msg.get(0).floatValue();
   }
 }
 
