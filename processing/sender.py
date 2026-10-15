@@ -121,6 +121,16 @@ def main():
                 client.send_message("/left_speed", left_speed)
                 client.send_message("/right_speed", right_speed)
 
+            else:
+                # Clear the Java renderer when no body is detected.
+                client.send_message("/pose/points", [-1.0, -1.0] * 14)
+                client.send_message("/left_speed", 0.0)
+                client.send_message("/right_speed", 0.0)
+                client.send_message("/hip_sway", 0.0)
+                prev_left = None
+                prev_right = None
+                hip_x_history.clear()
+
             cv2.imshow("Python Pose Interpreter (q: quit)", frame)
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
