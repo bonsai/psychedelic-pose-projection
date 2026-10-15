@@ -79,7 +79,7 @@ void draw() {
 
   // Rendering only: Python computes hip_sway intensity and sends /hip_sway.
   PVector hip = points[13];
-  if (onScreen(hip) && hipSway > 0.03) {
+  if (onScreen(hip) && hipSway > 0) {
     float intensity = min(hipSway, 1.5);
     int numRings = int(2 + intensity * 3);
     noFill();
