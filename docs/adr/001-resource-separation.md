@@ -1,6 +1,6 @@
 # ADR-001: リソース分離によるエフェクト処理の最適化
 
-- Status: Proposed
+- Status: Accepted (desktop runtime)
 - Date: 2026-10-08
 
 ## Context
@@ -13,13 +13,15 @@ Pose、輪郭抽出、Particle、AIによる演出判断をすべて同一プロ
 
 **処理内容ではなく、リソース特性によって責務を分離する。**
 
+このリポジトリのデスクトップ実行経路は、実装上の境界をさらに明確にし、**Pythonがカメラ・MediaPipe・姿勢/動きの解釈を担当し、Processing（Java mode）が描画だけを担当する**。両者はlocalhostのOSC/UDPで接続する。p5.js / JavaScript Canvasはこの実行経路では使用しない。
+
 ### Smartphone: Real-time layer
 
 - Camera
 - MediaPipe Pose
 - JEVによる輪郭 / Edge / Silhouette抽出
 - 軽量なShape Attributes生成
-- JS / WebGL Particle
+- Processing (Java mode) のParticle / Trail描画
 - Projection
 - Touch / UI
 
@@ -53,7 +55,7 @@ JEVは「画像上の形状」を、Poseは「身体の意味」を提供する�
 | Resource | Smartphone | PC fallback |
 |---|---|---|
 | CPU | Pose / 軽量JEV | Python / OpenCV / LangGraph |
-| GPU | WebGL / Particle / Projection | Rust / GPU simulation candidate |
+| GPU | Processing描画 / Projection | Rust / GPU simulation candidate |
 | Memory | フレーム・軽量属性 | 大量Particle / cache |
 | Network | 必要時のみ | Effect JSON / metrics |
 | Battery | 最小化 | 制約を緩和 |
@@ -105,7 +107,7 @@ Smartphone
 
 ### Positive
 
-- スマホ単体でも動作できる
+- Python解釈とJava描画を別々に計測・改善できる
 - PC接続時だけ高度化できる
 - バッテリー消費を抑えやすい
 - Particle処理をRustへ段階的に移せる
