@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Psychedelic Pose Projection — JavaScript</title>
+<style>
+:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#080812;color:#f6f3ff;font:16px/1.5 system-ui,sans-serif}main{max-width:1000px;margin:auto;padding:24px}h1{font-size:clamp(1.5rem,4vw,2.5rem);margin:.2em 0}p{color:#c9c3df}.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}button,input{font:inherit}button{padding:10px 16px;border:0;border-radius:8px;background:#b94dff;color:white;cursor:pointer}button:disabled{opacity:.5;cursor:default}label{display:flex;align-items:center;gap:8px}.stage{position:relative;aspect-ratio:16/9;background:#111122;border:1px solid #40305a;border-radius:12px;overflow:hidden}canvas{width:100%;height:100%;display:block}video{display:none}.hint{font-size:.9rem}a{color:#d5a4ff}
+</style>
+</head>
+<body><main>
+<h1>Psychedelic Pose Projection</h1>
+<p>JavaScript版 · MediaPipe Pose Landmarker + Canvas。カメラ映像を端末内で解析し、姿勢に合わせて虹色の残像を描画します。</p>
+<div class="toolbar"><button id="start">カメラ開始</button><button id="stop" disabled>停止</button><label>エフェクト強度 <input id="strength" type="range" min="1" max="10" value="6"></label><label><input id="ripple" type="checkbox" checked> 波紋</label></div>
+<div class="stage"><video id="video" playsinline></video><canvas id="canvas"></canvas></div>
+<p id="status" class="hint">開始を押してカメラへのアクセスを許可してください。HTTPS環境が必要です。</p>
+<p><a href="../">プロジェクトトップへ戻る</a> · <a href="https://github.com/bonsai/psychedelic-pose-projection/blob/main/js/index.html">ソースコード</a></p>
+</main>
+<script type="module">
+import { PoseLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
+const video=document.querySelector("#video"),canvas=document.querySelector("#canvas"),ctx=canvas.getContext("2d");
+const start=document.querySelector("#start"),stop=document.querySelector("#stop"),status=document.querySelector("#status"),strength=document.querySelector("#strength"),ripple=document.querySelector("#ripple");
+let stream=null,landmarker=null,running=false,last=0,trail=[];
+function resize(){const r=canvas.getBoundingClientRect(),d=Math.min(devicePixelRatio||1,2);canvas.width=Math.max(1,Math.round(r.width*d));canvas.height=Math.max(1,Math.round(r.height*d));}
+new ResizeObserver(resize).observe(canvas);resize();
+start.addEventListener("click",async()=>{start.disabled=true;status.textContent="モデルを読み込んでいます…";try{
+const vision=await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
+landmarker=await PoseLandmarker.createFromOptions(vision,{baseOptions:{modelAssetPath:"https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task",delegate:"GPU"},runningMode:"VIDEO",numPoses:2});
+stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user",width:{ideal:1280},height:{ideal:720}},audio:false});video.srcObject=stream;await video.play();running=true;stop.disabled=false;status.textContent="実行中：人物が画面に入ると虹色の残像が表示されます。";requestAnimationFrame(draw);
+}catch(e){status.textContent="開始できませんでした: "+e.message;start.disabled=false;stop.disabled=true;}}
+);
+stop.addEventListener("click",()=>{running=false;if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;video.srcObject=null;ctx.clearRect(0,0,canvas.width,canvas.height);trail=[];start.disabled=false;stop.disabled=true;status.textContent="停止しました。"});
+function draw(now){if(!running)return;requestAnimationFrame(draw);if(video.readyState<2||now-last<30)return;last=now;
+const w=canvas.width,h=canvas.height;ctx.fillStyle="rgba(8,8,18,0.22)";ctx.fillRect(0,0,w,h);
+try{const result=landmarker.detectForVideo(video,now);const poses=result.landmarks||[];const scale=Number(strength.value);
+for(const pose of poses){const pts=pose.filter(p=>p.visibility===undefined||p.visibility>.45).map(p=>({x:(1-p.x)*w,y:p.y*h}));if(!pts.length)continue;
+for(let i=0;i<pts.length;i++){const p=pts[i];trail.push({x:p.x,y:p.y,life:1,hue:(now/18+i*19)%360});}
+if(trail.length>900)trail.splice(0,trail.length-900);
+ctx.save();ctx.globalCompositeOperation="lighter";ctx.lineWidth=2+scale*.35;ctx.shadowBlur=8+scale*2;
+const connections=[[11,12],[11,13],[13,15],[12,14],[14,16],[11,23],[12,24],[23,24],[23,25],[25,27],[24,26],[26,28],[0,11],[0,12]];
+for(const [a,b] of connections){if(pose[a]&&pose[b]&&(pose[a].visibility??1)>.4&&(pose[b].visibility??1)>.4){ctx.strokeStyle="hsl("+((now/12+a*17)%360)+" 100% 65%)";ctx.shadowColor=ctx.strokeStyle;ctx.beginPath();ctx.moveTo((1-pose[a].x)*w,pose[a].y*h);ctx.lineTo((1-pose[b].x)*w,pose[b].y*h);ctx.stroke();}}
+for(const p of pts){ctx.fillStyle="hsl("+((now/12+p.x/w*180)%360)+" 100% 65%)";ctx.shadowColor=ctx.fillStyle;ctx.beginPath();ctx.arc(p.x,p.y,2+scale*.45,0,Math.PI*2);ctx.fill();if(ripple.checked){ctx.globalAlpha=.25;ctx.beginPath();ctx.arc(p.x,p.y,(now/30)%35,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1;}}
+ctx.restore();}
+ctx.save();ctx.globalCompositeOperation="lighter";for(const p of trail){ctx.globalAlpha=p.life*.38;ctx.fillStyle="hsl("+p.hue+" 100% 60%)";ctx.shadowColor=ctx.fillStyle;ctx.shadowBlur=10;ctx.beginPath();ctx.arc(p.x,p.y,1.5+scale*.25,0,Math.PI*2);ctx.fill();p.life-=.035;}ctx.restore();trail=trail.filter(p=>p.life>0);
+}catch(e){status.textContent="姿勢検出エラー: "+e.message;}
+}
+</script></body></html>
