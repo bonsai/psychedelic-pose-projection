@@ -88,6 +88,8 @@ def main():
                         mean_x = sum(hip_x_history) / len(hip_x_history)
                         variance = sum((x - mean_x) ** 2 for x in hip_x_history) / len(hip_x_history)
                         sway_px = min(math.sqrt(variance) * w / 25.0, 1.5)
+                        if sway_px < 0.03:
+                            sway_px = 0.0
                 else:
                     points.extend([-1.0, -1.0])
                     sway_px = 0.0
