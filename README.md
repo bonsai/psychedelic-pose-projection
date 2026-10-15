@@ -12,6 +12,9 @@ MediaPipe Poseを起点に、身体の動きを**映像エフェクトへ変換�
 
 GitHub Pages Demo: https://bonsai.github.io/psychedelic-pose-projection/
 
+- [JavaScript版（MediaPipe Pose + Canvas）](https://bonsai.github.io/psychedelic-pose-projection/js/)
+- [JavaScript版ソースコード](js/index.html)
+
 現在は `data/captf/` に、Poseを使ったサイケデリックなエフェクト生成結果を掲載しています。
 
 ## 実行アーキテクチャ（Java描画 + Python解釈）
