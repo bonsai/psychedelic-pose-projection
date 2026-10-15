@@ -40,6 +40,7 @@ def main():
 
     prev_left = None
     prev_right = None
+    hip_x_history = deque(maxlen=20)
 
     with mp_pose.Pose(
         static_image_mode=False,
@@ -69,15 +70,30 @@ def main():
                 points = []
                 for lm_type in LANDMARKS:
                     l = lm[lm_type.value]
-                    points.extend([l.x, l.y])
+                    # Python owns interpretation and confidence filtering.
+                    if l.visibility >= 0.35:
+                        points.extend([l.x, l.y])
+                    else:
+                        points.extend([-1.0, -1.0])
 
                 left_hip = lm[mp_pose.PoseLandmark.LEFT_HIP.value]
                 right_hip = lm[mp_pose.PoseLandmark.RIGHT_HIP.value]
-                hip_center_x = (left_hip.x + right_hip.x) / 2.0
-                hip_center_y = (left_hip.y + right_hip.y) / 2.0
-                points.extend([hip_center_x, hip_center_y])
+                if min(left_hip.visibility, right_hip.visibility) >= 0.35:
+                    hip_center_x = (left_hip.x + right_hip.x) / 2.0
+                    hip_center_y = (left_hip.y + right_hip.y) / 2.0
+                    points.extend([hip_center_x, hip_center_y])
+                    hip_x_history.append(hip_center_x)
+                    sway_px = 0.0
+                    if len(hip_x_history) >= 5:
+                        mean_x = sum(hip_x_history) / len(hip_x_history)
+                        variance = sum((x - mean_x) ** 2 for x in hip_x_history) / len(hip_x_history)
+                        sway_px = min(math.sqrt(variance) * w / 25.0, 1.5)
+                else:
+                    points.extend([-1.0, -1.0])
+                    sway_px = 0.0
 
                 client.send_message("/pose/points", points)
+                client.send_message("/hip_sway", float(sway_px))
 
                 left_wrist = (
                     lm[mp_pose.PoseLandmark.LEFT_WRIST.value].x * w,
@@ -105,7 +121,7 @@ def main():
                 client.send_message("/left_speed", left_speed)
                 client.send_message("/right_speed", right_speed)
 
-            cv2.imshow("OSC Sender (q: quit)", frame)
+            cv2.imshow("Python Pose Interpreter (q: quit)", frame)
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
 
