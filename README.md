@@ -156,6 +156,20 @@ Control / Experimental
 - **LangGraph** — 評価から次の生成条件までのループ制御
 - **YouTube** — 実際の視聴者行動を外部教師信号として利用
 
+## 疎結合設計
+
+[air-shodoのモジュール分割](https://github.com/bonsai/air-shodo/blob/fc98c3126f0707ac292c3469ff28ad9bfd875900/README.md#L4) と同様に、責務ごとに部品を分離し、明示的な契約で接続します。
+
+- **Python interpreter**: カメラ、MediaPipe、信頼度判定、動きの意味解釈
+- **OSC adapter**: 属性データの転送だけを担当
+- **Processing / Java renderer**: 受け取った属性の描画だけを担当
+- **Replay / evaluation**: 記録済みデータで独立検証し、リアルタイム描画ループに依存しない
+
+契約: [Pose Attributes Contract v1](docs/contracts/pose-attributes-v1.md)  
+設計判断: [ADR-002 — Loose Coupling](docs/adr/002-loose-coupling.md)
+
+Python側を別の姿勢推定器に、Java側を別の描画エンジンに置き換えても、契約を守る限り他方の実装を変更しない設計にします。VLM・LangGraph・評価・素材生成はフレームごとの描画経路から切り離します。
+
 ## リソース分離
 
 リアルタイム性と知的処理を同じ場所で行わない方針です。
