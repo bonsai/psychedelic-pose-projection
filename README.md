@@ -14,6 +14,29 @@ GitHub Pages Demo: https://bonsai.github.io/psychedelic-pose-projection/
 
 現在は `data/captf/` に、Poseを使ったサイケデリックなエフェクト生成結果を掲載しています。
 
+## 実行アーキテクチャ（Java描画 + Python解釈）
+
+リアルタイム実行経路は **Pythonがカメラ・MediaPipe・動きの解釈を担当し、Processing（Java mode）が描画だけを担当**します。p5.js / JavaScript Canvasをランタイム描画には使いません。
+
+```text
+Local Camera
+  ↓
+Python: OpenCV + MediaPipe
+  ↓  visibility / wrist speed / hip sway を解釈
+OSC over localhost:12000
+  ↓
+Processing (Java mode): render only
+  ↓
+Display / Projector
+```
+
+- Python: 姿勢検出、visibilityしきい値、手首速度、腰の揺れ強度を計算
+- Processing/Java: 受信した正規化座標・属性を使って骨格、残像、波紋を描画
+- 通信: OSC / UDP、同一PC内の `127.0.0.1:12000`
+- カメラ映像は保存・送信せず、ローカルで処理
+
+セットアップと起動は [Processing実行ガイド](processing/README.md) を参照してください。
+
 ## コンセプト
 
 ```text
@@ -200,7 +223,7 @@ docs/
     pages.yml
 ```
 
-既存のPython / Windows / Linux / Processing実装は、それぞれ実験・実行環境として維持します。
+Pythonは姿勢・動きの解釈、Processing（Java mode）は描画に責務を限定します。既存のLinux / Windows実装は比較・実験用として維持します。
 
 ## Issue Map
 
