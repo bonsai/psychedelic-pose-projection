@@ -7,6 +7,7 @@ on:
     paths:
       - "data/captf/**"
       - "data/capt_frames/**"
+      - "js/**"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
@@ -32,13 +33,14 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
-      - name: Assemble captf site
+      - name: Assemble site
         run: |
-          mkdir -p _site/capt_frames
+          mkdir -p _site/capt_frames _site/js
           cp -R data/captf/. _site/
           cp data/capt_frames/*.jpg _site/capt_frames/
+          cp -R js/. _site/js/
 
-      - name: Upload captf site
+      - name: Upload site
         uses: actions/upload-pages-artifact@v4
         with:
           path: _site
