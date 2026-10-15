@@ -9,6 +9,8 @@ MediaPipe Poseを起点に、身体の動きを映像エフェクトへ変換し
 GitHub Pagesの既存デモと生成結果は以下にあります。
 
 - [GitHub Pages](https://bonsai.github.io/psychedelic-pose-projection/)
+- [JavaScript版リアルタイムデモ](https://bonsai.github.io/psychedelic-pose-projection/js/)
+- [JavaScript版ソースコード](js/index.html)
 - [生成エフェクト資料](data/captf/)
 
 **リアルタイム実行コードは [bonsai/mpp5](https://github.com/bonsai/mpp5) に集約しました。** 本リポジトリからProcessing/Javaランタイムを移し、姿勢解釈はPython、描画はmpp5側のProcessing（Java）またはp5.jsが担当します。
