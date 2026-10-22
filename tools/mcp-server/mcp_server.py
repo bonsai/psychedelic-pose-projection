@@ -9,7 +9,7 @@ from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP
 
-PROJECT_DIR = Path("/home/bons/bons")
+PROJECT_DIR = Path("/home/bons/psychedelic-pose-projection")
 
 mcp = FastMCP("psychedelic-pose-mcp")
 
@@ -92,7 +92,7 @@ def run_python_sender() -> str:
     sender = PROJECT_DIR / "processing-osc" / "sender.py"
     if not sender.exists():
         return "[error] sender.py not found"
-    python = "/tmp/psychedelic-pose-projection/.venv312/bin/python"
+    python = "python3"
     return _run([python, str(sender)], timeout=8, cwd=PROJECT_DIR)
 
 
